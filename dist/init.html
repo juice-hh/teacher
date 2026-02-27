@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>数据初始化工具</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: white;
+      border-radius: 12px;
+      padding: 40px;
+      max-width: 600px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 20px;
+      font-size: 28px;
+    }
+
+    .status {
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+
+    .status.info {
+      background: #e6f7ff;
+      border-left: 4px solid #1890ff;
+      color: #0050b3;
+    }
+
+    .status.success {
+      background: #f6ffed;
+      border-left: 4px solid #52c41a;
+      color: #389e0d;
+    }
+
+    .status.warning {
+      background: #fff7e6;
+      border-left: 4px solid #fa8c16;
+      color: #d46b08;
+    }
+
+    .button {
+      display: block;
+      width: 100%;
+      padding: 15px 30px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 18px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      margin-bottom: 15px;
+    }
+
+    .button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+    }
+
+    .button:active {
+      transform: translateY(0);
+    }
+
+    .button.secondary {
+      background: #f0f0f0;
+      color: #333;
+    }
+
+    .button.secondary:hover {
+      background: #e0e0e0;
+    }
+
+    .log {
+      background: #f5f5f5;
+      border-radius: 8px;
+      padding: 20px;
+      margin-top: 20px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .log-item {
+      margin-bottom: 8px;
+    }
+
+    .log-item.success {
+      color: #52c41a;
+    }
+
+    .log-item.error {
+      color: #ff4d4f;
+    }
+
+    .log-item.info {
+      color: #1890ff;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    .stat-card {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    .stat-number {
+      font-size: 32px;
+      font-weight: 700;
+      color: #667eea;
+      margin-bottom: 5px;
+    }
+
+    .stat-label {
+      font-size: 13px;
+      color: #666;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🚀 教师评价系统 - 数据初始化</h1>
+
+    <div id="initial-status" class="status info">
+      <strong>ℹ️ 说明：</strong>此工具将清除所有缓存数据并重新初始化演示数据，确保所有页面正常显示。
+    </div>
+
+    <button id="initBtn" class="button">🔄 立即初始化所有数据</button>
+    <button id="clearBtn" class="button secondary">🗑️ 仅清除缓存</button>
+
+    <div id="resultArea" class="hidden">
+      <div class="stats">
+        <div class="stat-card">
+          <div class="stat-number" id="materialCount">0</div>
+          <div class="stat-label">评价材料</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="scoreCount">0</div>
+          <div class="stat-label">教师积分</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="appealCount">0</div>
+          <div class="stat-label">申诉记录</div>
+        </div>
+      </div>
+
+      <div class="log" id="logArea"></div>
+    </div>
+
+    <div id="successArea" class="hidden">
+      <div class="status success">
+        <strong>✅ 初始化完成！</strong>页面将在 <span id="countdown">3</span> 秒后自动刷新...
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const logArea = document.getElementById('logArea')
+    const resultArea = document.getElementById('resultArea')
+    const successArea = document.getElementById('successArea')
+    const initStatus = document.getElementById('initial-status')
+
+    function log(message, type = 'info') {
+      const item = document.createElement('div')
+      item.className = `log-item ${type}`
+      item.textContent = message
+      logArea.appendChild(item)
+      logArea.scrollTop = logArea.scrollHeight
+    }
+
+    function initData() {
+      resultArea.classList.remove('hidden')
+      initStatus.classList.add('hidden')
+      logArea.innerHTML = ''
+
+      log('🚀 开始数据初始化...', 'info')
+
+      // 清除旧数据
+      log('📋 步骤1：清除旧数据...', 'info')
+      localStorage.removeItem('evaluationMaterials')
+      localStorage.removeItem('evaluationScores')
+      localStorage.removeItem('scoreAppeals')
+      log('✅ 已清除所有旧数据', 'success')
+
+      // 初始化评价材料
+      log('📦 步骤2：初始化评价材料...', 'info')
+      const materials = [
+        { id: 1, taskId: 1, taskName: '2024年度教师自评', indicatorId: 1, indicatorName: '备课充分', teacherId: 'T001', teacherName: '张老师', materialName: '教学教案-春季学期', materialType: 'document', fileUrl: '/files/teaching-plan.pdf', description: '包含完整的教学教案、教学日历和课件', uploadTime: '2024-03-05 10:30:00', status: 'pending', approveTime: null, approver: null, rejectReason: '' },
+        { id: 2, taskId: 1, taskName: '2024年度教师自评', indicatorId: 5, indicatorName: '教学方法创新', teacherId: 'T001', teacherName: '张老师', materialName: '教学改革项目成果', materialType: 'document', fileUrl: '/files/teaching-reform.pdf', description: '教学方法创新项目的实施记录和成果', uploadTime: '2024-03-06 14:20:00', status: 'approved', approveTime: '2024-03-07 09:15:00', approver: '管理员', rejectReason: '' },
+        { id: 3, taskId: 1, taskName: '2024年度教师自评', indicatorId: 2, indicatorName: '课堂管理', teacherId: 'T002', teacherName: '李老师', materialName: '课堂管理记录', materialType: 'document', fileUrl: '/files/class-management.pdf', description: '本学期课堂管理情况记录', uploadTime: '2024-03-04 16:45:00', status: 'rejected', approveTime: '2024-03-05 11:20:00', approver: '管理员', rejectReason: '材料不完整，缺少学生反馈记录' },
+        { id: 4, taskId: 1, taskName: '2024年度教师自评', indicatorId: 8, indicatorName: '学生评价', teacherId: 'T003', teacherName: '王老师', materialName: '学生评教汇总报告', materialType: 'document', fileUrl: '/files/student-eval.pdf', description: '2024年春季学期学生评教结果汇总', uploadTime: '2024-03-07 09:15:00', status: 'pending', approveTime: null, approver: null, rejectReason: '' },
+        { id: 5, taskId: 1, taskName: '2024年度教师自评', indicatorId: 11, indicatorName: '学术研究', teacherId: 'T003', teacherName: '王老师', materialName: '科研项目结题证书', materialType: 'document', fileUrl: '/files/research-cert.pdf', description: '2023年度省级科研项目结题材料', uploadTime: '2024-03-08 15:30:00', status: 'pending', approveTime: null, approver: null, rejectReason: '' }
+      ]
+      localStorage.setItem('evaluationMaterials', JSON.stringify(materials))
+      log(`✅ 已保存 ${materials.length} 条材料数据`, 'success')
+
+      // 初始化积分数据
+      log('📊 步骤3：初始化积分数据...', 'info')
+      const scores = [
+        { id: 1, teacherId: 'T001', teacherName: '张老师', department: '计算机学院', semester: '2024年度', totalScore: 92.5, confirmed: true, confirmedBy: null, confirmedAt: '2024-03-15 10:30:00', details: [{ taskId: 1, taskName: '2024年度教师自评', indicatorId: 1, indicatorName: '备课充分', score: 5, maxScore: 5 }, { taskId: 1, taskName: '2024年度教师自评', indicatorId: 5, indicatorName: '教学方法创新', score: 7, maxScore: 8 }, { taskId: 1, taskName: '2024年度教师自评', indicatorId: 8, indicatorName: '学生评价', score: 9, maxScore: 10 }, { taskId: 1, taskName: '2024年度教师自评', indicatorId: 11, indicatorName: '学术研究', score: 8.5, maxScore: 10 }] },
+        { id: 2, teacherId: 'T002', teacherName: '李老师', department: '数学学院', semester: '2024年度', totalScore: 87.0, confirmed: true, confirmedBy: null, confirmedAt: '2024-03-16 14:20:00', details: [{ taskId: 1, taskName: '2024年度教师自评', indicatorId: 1, indicatorName: '备课充分', score: 4, maxScore: 5 }, { taskId: 1, taskName: '2024年度教师自评', indicatorId: 5, indicatorName: '教学方法创新', score: 6, maxScore: 8 }, { taskId: 1, taskName: '2024年度教师自评', indicatorId: 8, indicatorName: '学生评价', score: 8.5, maxScore: 10 }, { taskId: 1, taskName: '2024年度教师自评', indicatorId: 11, indicatorName: '学术研究', score: 7.5, maxScore: 10 }] },
+        { id: 3, teacherId: 'T003', teacherName: '王老师', department: '英语学院', semester: '2024年度', totalScore: 95.0, confirmed: false, confirmedBy: null, confirmedAt: null, details: [{ taskId: 1, taskName: '2024年度教师自评', indicatorId: 1, indicatorName: '备课充分', score: 5, maxScore: 5 }, { taskId: 1, taskName: '2024年度教师自评', indicatorId: 5, indicatorName: '教学方法创新', score: 8, maxScore: 8 }, { taskId: 1, taskName: '2024年度教师自评', indicatorId: 8, indicatorName: '学生评价', score: 9.5, maxScore: 10 }, { taskId: 1, taskName: '2024年度教师自评', indicatorId: 11, indicatorName: '学术研究', score: 9, maxScore: 10 }] },
+        { id: 4, teacherId: 'T004', teacherName: '赵老师', department: '物理学院', semester: '2024年度', totalScore: 88.5, confirmed: false, confirmedBy: null, confirmedAt: null, details: [{ taskId: 1, taskName: '2024年度教师自评', indicatorId: 1, indicatorName: '备课充分', score: 4.5, maxScore: 5 }, { taskId: 1, taskName: '2024年度教师自评', indicatorId: 5, indicatorName: '教学方法创新', score: 6.5, maxScore: 8 }, { taskId: 1, taskName: '2024年度教师自评', indicatorId: 8, indicatorName: '学生评价', score: 9, maxScore: 10 }, { taskId: 1, taskName: '2024年度教师自评', indicatorId: 11, indicatorName: '学术研究', score: 8, maxScore: 10 }] },
+        { id: 5, teacherId: 'T005', teacherName: '陈老师', department: '计算机学院', semester: '2024年度', totalScore: 91.0, confirmed: true, confirmedBy: '管理员', confirmedAt: '2024-03-17 11:00:00', details: [{ taskId: 1, taskName: '2024年度教师自评', indicatorId: 1, indicatorName: '备课充分', score: 5, maxScore: 5 }, { taskId: 1, taskName: '2024年度教师自评', indicatorId: 5, indicatorName: '教学方法创新', score: 7.5, maxScore: 8 }, { taskId: 1, taskName: '2024年度教师自评', indicatorId: 8, indicatorName: '学生评价', score: 8.5, maxScore: 10 }, { taskId: 1, taskName: '2024年度教师自评', indicatorId: 11, indicatorName: '学术研究', score: 8, maxScore: 10 }] },
+        { id: 6, teacherId: 'T001', teacherName: '张老师', department: '计算机学院', semester: '2023年度', totalScore: 89.0, confirmed: true, confirmedBy: '管理员', confirmedAt: '2024-01-15 10:30:00', details: [{ taskId: 2, taskName: '2023年度教师自评', indicatorId: 1, indicatorName: '备课充分', score: 4.5, maxScore: 5 }, { taskId: 2, taskName: '2023年度教师自评', indicatorId: 5, indicatorName: '教学方法创新', score: 6.5, maxScore: 8 }, { taskId: 2, taskName: '2023年度教师自评', indicatorId: 8, indicatorName: '学生评价', score: 9, maxScore: 10 }, { taskId: 2, taskName: '2023年度教师自评', indicatorId: 11, indicatorName: '学术研究', score: 8, maxScore: 10 }] }
+      ]
+      localStorage.setItem('evaluationScores', JSON.stringify(scores))
+      log(`✅ 已保存 ${scores.length} 条积分数据`, 'success')
+
+      // 初始化申诉数据
+      log('📝 步骤4：初始化申诉数据...', 'info')
+      const appeals = [
+        { id: 1, teacherId: 'T003', teacherName: '王老师', department: '英语学院', scoreId: 3, indicatorName: '教学方法创新', originalScore: 7, expectedScore: 8, reason: '该指标实际得分应该是8分，系统计算错误', status: 'pending', submitTime: '2024-03-20 10:15:00', handler: null, handleTime: null, handleResult: '' },
+        { id: 2, teacherId: 'T001', teacherName: '张老师', department: '计算机学院', scoreId: 1, indicatorName: '学生评价', originalScore: 9, expectedScore: 10, reason: '学生评教分数应该更高', status: 'approved', submitTime: '2024-03-18 15:30:00', handler: '管理员', handleTime: '2024-03-19 09:20:00', handleResult: '经复核，同意调整为10分' },
+        { id: 3, teacherId: 'T004', teacherName: '赵老师', department: '物理学院', scoreId: 4, indicatorName: '学术研究', originalScore: 7, expectedScore: 9, reason: '有一篇论文被遗漏统计', status: 'pending', submitTime: '2024-03-21 14:20:00', handler: null, handleTime: null, handleResult: '' },
+        { id: 4, teacherId: 'T002', teacherName: '李老师', department: '数学学院', scoreId: 2, indicatorName: '备课充分', originalScore: 4, expectedScore: 5, reason: '教案完整，应得满分', status: 'rejected', submitTime: '2024-03-17 09:30:00', handler: '管理员', handleTime: '2024-03-18 10:15:00', handleResult: '经复核，教案确实有部分内容缺失，维持原分' }
+      ]
+      localStorage.setItem('scoreAppeals', JSON.stringify(appeals))
+      log(`✅ 已保存 ${appeals.length} 条申诉数据`, 'success')
+
+      // 更新统计
+      document.getElementById('materialCount').textContent = materials.length
+      document.getElementById('scoreCount').textContent = scores.length
+      document.getElementById('appealCount').textContent = appeals.length
+
+      log('', 'info')
+      log('🎉 所有演示数据初始化完成！', 'success')
+
+      // 显示成功信息并倒计时
+      successArea.classList.remove('hidden')
+      let countdown = 3
+      const timer = setInterval(() => {
+        countdown--
+        document.getElementById('countdown').textContent = countdown
+        if (countdown <= 0) {
+          clearInterval(timer)
+          log('♻️ 正在刷新页面...', 'info')
+          setTimeout(() => {
+            window.location.href = 'http://localhost:3001'
+          }, 500)
+        }
+      }, 1000)
+    }
+
+    function clearData() {
+      resultArea.classList.remove('hidden')
+      initStatus.classList.add('hidden')
+      logArea.innerHTML = ''
+
+      log('🗑️ 清除所有缓存数据...', 'info')
+      localStorage.removeItem('evaluationMaterials')
+      localStorage.removeItem('evaluationScores')
+      localStorage.removeItem('scoreAppeals')
+      log('✅ 缓存已清除', 'success')
+      log('', 'info')
+      log('💡 提示：请刷新应用页面，数据将自动重新初始化', 'info')
+    }
+
+    document.getElementById('initBtn').addEventListener('click', initData)
+    document.getElementById('clearBtn').addEventListener('click', clearData)
+  </script>
+</body>
+</html>

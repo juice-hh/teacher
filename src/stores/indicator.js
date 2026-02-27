@@ -1,0 +1,123 @@
+import { defineStore } from 'pinia'
+import { ref } from 'vue'
+
+export const useIndicatorStore = defineStore('indicator', () => {
+  // 一级指标
+  const primaryIndicators = ref([
+    { id: 1, name: '教研常规积分', score: 40, description: '教学、科研的日常参与度得分' },
+    { id: 2, name: '教科研成果', score: 30, description: '课堂竞赛、论文编写、课题开发等产出' },
+    { id: 3, name: '示范辐射', score: 30, description: '荣誉、名师引领、学科组建设及研究团队' }
+  ])
+
+  // 二级指标
+  const secondaryIndicators = ref([
+    // 教研常规积分
+    { id: 1, primaryId: 1, name: '教研活动', score: 30, scoringRule: '积极参与各项教研活动', materialRequirement: '活动签到与总结', responsibleBody: '教务处' },
+    { id: 2, primaryId: 1, name: '公开课', score: 3, scoringRule: '按要求开展各级别公开课', materialRequirement: '公开课教学设计及评价表', responsibleBody: '教务处' },
+    { id: 3, primaryId: 1, name: '主题研讨', score: 5, scoringRule: '参与或主讲教学主题研讨', materialRequirement: '研讨记录', responsibleBody: '教务处' },
+    { id: 4, primaryId: 1, name: '学习培训', score: 2, scoringRule: '参与各级别继续教育学习或培训', materialRequirement: '学时证明/证书', responsibleBody: '教师发展中心' },
+    { id: 5, primaryId: 1, name: '现代教育信息技术应用', score: 5, scoringRule: '在教学中熟练运用信息化手段', materialRequirement: '平台应用数据或案例', responsibleBody: '信息中心' },
+
+    // 教科研成果
+    { id: 6, primaryId: 2, name: '课堂教学比赛类', score: 10, scoringRule: '在各级教学技能比赛中获奖', materialRequirement: '获奖证书', responsibleBody: '教务处' },
+    { id: 7, primaryId: 2, name: '论文论著课题类', score: 10, scoringRule: '发表高水平论文、著作，或主持/参与各级课题', materialRequirement: '论文原件、著作扉页、课题立项/结题证书', responsibleBody: '科研处' },
+    { id: 8, primaryId: 2, name: '课程开发及学生获奖类', score: 10, scoringRule: '主持/参与课程资源开发，指导学生在各类竞赛中获奖', materialRequirement: '课程建设证明、学生获奖证书', responsibleBody: '教务处/学工处' },
+
+    // 示范辐射
+    { id: 9, primaryId: 3, name: '专业荣誉', score: 8, scoringRule: '获得市级、省级、国家级荣誉称号', materialRequirement: '荣誉证书/文件', responsibleBody: '人事处' },
+    { id: 10, primaryId: 3, name: '专家、骨干示范引领', score: 8, scoringRule: '发挥专家、骨干教师的传帮带作用', materialRequirement: '引领过程性材料/相关聘任书', responsibleBody: '教务处' },
+    { id: 11, primaryId: 3, name: '名师工作室、名班主任工作室', score: 4, scoringRule: '主持或作为核心成员参与工作室建设且成绩优异', materialRequirement: '工作室活动记录、考核表', responsibleBody: '教务处/学工处' },
+    { id: 12, primaryId: 3, name: '先进学科组、教研组', score: 4, scoringRule: '组织参加先进教研组评选并获评', materialRequirement: '获评文件', responsibleBody: '教务处' },
+    { id: 13, primaryId: 3, name: '青蓝工程', score: 4, scoringRule: '积极承担青年教师带教任务', materialRequirement: '师徒结对协议、带教考核通过证明', responsibleBody: '师资培训处' },
+    { id: 14, primaryId: 3, name: '教育教学项目研究团队', score: 2, scoringRule: '组建团队进行针对性教学项目研究', materialRequirement: '团队研究成果/报告', responsibleBody: '科研处' }
+  ])
+
+  // 获取一级指标下的二级指标
+  function getSecondaryByPrimary(primaryId) {
+    return secondaryIndicators.value.filter(item => item.primaryId === primaryId)
+  }
+
+  // 添加一级指标
+  function addPrimaryIndicator(indicator) {
+    const newId = Math.max(...primaryIndicators.value.map(i => i.id), 0) + 1
+    primaryIndicators.value.push({ id: newId, ...indicator })
+    saveToLocal()
+  }
+
+  // 更新一级指标
+  function updatePrimaryIndicator(id, data) {
+    const index = primaryIndicators.value.findIndex(i => i.id === id)
+    if (index !== -1) {
+      primaryIndicators.value[index] = { ...primaryIndicators.value[index], ...data }
+      saveToLocal()
+    }
+  }
+
+  // 删除一级指标
+  function deletePrimaryIndicator(id) {
+    primaryIndicators.value = primaryIndicators.value.filter(i => i.id !== id)
+    secondaryIndicators.value = secondaryIndicators.value.filter(i => i.primaryId !== id)
+    saveToLocal()
+  }
+
+  // 添加二级指标
+  function addSecondaryIndicator(indicator) {
+    const newId = Math.max(...secondaryIndicators.value.map(i => i.id), 0) + 1
+    secondaryIndicators.value.push({ id: newId, ...indicator })
+    saveToLocal()
+  }
+
+  // 更新二级指标
+  function updateSecondaryIndicator(id, data) {
+    const index = secondaryIndicators.value.findIndex(i => i.id === id)
+    if (index !== -1) {
+      secondaryIndicators.value[index] = { ...secondaryIndicators.value[index], ...data }
+      saveToLocal()
+    }
+  }
+
+  // 删除二级指标
+  function deleteSecondaryIndicator(id) {
+    secondaryIndicators.value = secondaryIndicators.value.filter(i => i.id !== id)
+    saveToLocal()
+  }
+
+  // 保存到本地存储
+  function saveToLocal() {
+    localStorage.setItem('primaryIndicators', JSON.stringify(primaryIndicators.value))
+    localStorage.setItem('secondaryIndicators', JSON.stringify(secondaryIndicators.value))
+  }
+
+  // 从本地存储加载
+  function loadFromLocal() {
+    const primary = localStorage.getItem('primaryIndicators')
+    const secondary = localStorage.getItem('secondaryIndicators')
+    if (primary) {
+      primaryIndicators.value = JSON.parse(primary)
+    }
+    if (secondary) {
+      secondaryIndicators.value = JSON.parse(secondary)
+    }
+  }
+
+  // 因为我们要强制覆盖用户的现有缓存，所以在定义好之后执行一次覆盖初始化
+  // 如果当前数量是演示数据的数量（13条），或者是旧数据，我们强刷一下
+  // 为了更稳妥地匹配需求，我们直接清空 localStorage 中这两个 key
+  localStorage.removeItem('primaryIndicators')
+  localStorage.removeItem('secondaryIndicators')
+  saveToLocal()
+
+  return {
+    primaryIndicators,
+    secondaryIndicators,
+    getSecondaryByPrimary,
+    addPrimaryIndicator,
+    updatePrimaryIndicator,
+    deletePrimaryIndicator,
+    addSecondaryIndicator,
+    updateSecondaryIndicator,
+    deleteSecondaryIndicator,
+    saveToLocal,
+    loadFromLocal
+  }
+})

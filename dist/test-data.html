@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        h1 { color: #333; }
+        .section {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 4px;
+        }
+        .data-count {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1890ff;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            background: #1890ff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+        button:hover {
+            background: #40a9ff;
+        }
+        button.danger {
+            background: #ff4d4f;
+        }
+        button.danger:hover {
+            background: #ff7875;
+        }
+        pre {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 数据状态检查</h1>
+
+        <div class="section">
+            <h3>LocalStorage 数据</h3>
+            <div class="data-count">评价材料: <span id="materialsCount">0</span> 条</div>
+            <div class="data-count">积分数据: <span id="scoresCount">0</span> 条</div>
+            <div class="data-count">申诉记录: <span id="appealsCount">0</span> 条</div>
+        </div>
+
+        <div class="section">
+            <h3>操作</h3>
+            <button onclick="loadDemoData()">📥 加载演示数据</button>
+            <button onclick="clearAllData()" class="danger">🗑️ 清除所有数据</button>
+            <button onclick="checkData()">🔍 检查数据</button>
+            <button onclick="goToApp()">🚀 进入系统</button>
+        </div>
+
+        <div class="section">
+            <h3>数据详情</h3>
+            <pre id="dataDetails">暂无数据</pre>
+        </div>
+
+        <div id="status" class="status" style="display: none;"></div>
+    </div>
+
+    <script>
+        // 演示数据
+        const demoMaterials = [
+            {
+                id: 1,
+                taskId: 1,
+                taskName: '2024年度教师自评',
+                indicatorId: 1,
+                indicatorName: '备课充分',
+                teacherId: 'T001',
+                teacherName: '张老师',
+                materialName: '教学教案-春季学期',
+                materialType: 'document',
+                fileUrl: '/files/teaching-plan.pdf',
+                description: '包含完整的教学教案、教学日历和课件',
+                uploadTime: '2024-03-05 10:30:00',
+                status: 'pending',
+                approveTime: null,
+                approver: null,
+                rejectReason: ''
+            },
+            {
+                id: 2,
+                taskId: 1,
+                taskName: '2024年度教师自评',
+                indicatorId: 5,
+                indicatorName: '教学方法创新',
+                teacherId: 'T001',
+                teacherName: '张老师',
+                materialName: '教学改革项目成果',
+                materialType: 'document',
+                fileUrl: '/files/teaching-reform.pdf',
+                description: '教学方法创新项目的实施记录和成果',
+                uploadTime: '2024-03-06 14:20:00',
+                status: 'approved',
+                approveTime: '2024-03-07 09:15:00',
+                approver: '管理员',
+                rejectReason: ''
+            },
+            {
+                id: 3,
+                taskId: 1,
+                taskName: '2024年度教师自评',
+                indicatorId: 2,
+                indicatorName: '课堂管理',
+                teacherId: 'T002',
+                teacherName: '李老师',
+                materialName: '课堂管理记录',
+                materialType: 'document',
+                fileUrl: '/files/class-management.pdf',
+                description: '本学期课堂管理情况记录',
+                uploadTime: '2024-03-04 16:45:00',
+                status: 'rejected',
+                approveTime: '2024-03-05 11:20:00',
+                approver: '管理员',
+                rejectReason: '材料不完整，缺少学生反馈记录'
+            },
+            {
+                id: 4,
+                taskId: 1,
+                taskName: '2024年度教师自评',
+                indicatorId: 8,
+                indicatorName: '学生评价',
+                teacherId: 'T003',
+                teacherName: '王老师',
+                materialName: '学生评教汇总报告',
+                materialType: 'document',
+                fileUrl: '/files/student-eval.pdf',
+                description: '2024年春季学期学生评教结果汇总',
+                uploadTime: '2024-03-07 09:15:00',
+                status: 'pending',
+                approveTime: null,
+                approver: null,
+                rejectReason: ''
+            },
+            {
+                id: 5,
+                taskId: 1,
+                taskName: '2024年度教师自评',
+                indicatorId: 11,
+                indicatorName: '学术研究',
+                teacherId: 'T003',
+                teacherName: '王老师',
+                materialName: '科研项目结题证书',
+                materialType: 'document',
+                fileUrl: '/files/research-cert.pdf',
+                description: '2023年度省级科研项目结题材料',
+                uploadTime: '2024-03-08 15:30:00',
+                status: 'pending',
+                approveTime: null,
+                approver: null,
+                rejectReason: ''
+            }
+        ]
+
+        const demoScores = [
+            {
+                id: 1,
+                teacherId: 'T001',
+                teacherName: '张老师',
+                department: '计算机学院',
+                semester: '2024年度',
+                totalScore: 92.5,
+                confirmed: true,
+                confirmedBy: null,
+                confirmedAt: '2024-03-15 10:30:00',
+                details: [
+                    { taskId: 1, taskName: '2024年度教师自评', indicatorId: 1, indicatorName: '备课充分', score: 5, maxScore: 5 },
+                    { taskId: 1, taskName: '2024年度教师自评', indicatorId: 5, indicatorName: '教学方法创新', score: 7, maxScore: 8 },
+                    { taskId: 1, taskName: '2024年度教师自评', indicatorId: 8, indicatorName: '学生评价', score: 9, maxScore: 10 },
+                    { taskId: 1, taskName: '2024年度教师自评', indicatorId: 11, indicatorName: '学术研究', score: 8.5, maxScore: 10 }
+                ]
+            },
+            {
+                id: 2,
+                teacherId: 'T002',
+                teacherName: '李老师',
+                department: '数学学院',
+                semester: '2024年度',
+                totalScore: 87.0,
+                confirmed: true,
+                confirmedBy: null,
+                confirmedAt: '2024-03-16 14:20:00',
+                details: [
+                    { taskId: 1, taskName: '2024年度教师自评', indicatorId: 1, indicatorName: '备课充分', score: 4, maxScore: 5 },
+                    { taskId: 1, taskName: '2024年度教师自评', indicatorId: 5, indicatorName: '教学方法创新', score: 6, maxScore: 8 },
+                    { taskId: 1, taskName: '2024年度教师自评', indicatorId: 8, indicatorName: '学生评价', score: 8.5, maxScore: 10 },
+                    { taskId: 1, taskName: '2024年度教师自评', indicatorId: 11, indicatorName: '学术研究', score: 7.5, maxScore: 10 }
+                ]
+            }
+        ]
+
+        const demoAppeals = [
+            {
+                id: 1,
+                teacherId: 'T003',
+                teacherName: '王老师',
+                department: '英语学院',
+                scoreId: 3,
+                indicatorName: '教学方法创新',
+                originalScore: 7,
+                expectedScore: 8,
+                reason: '该指标实际得分应该是8分，系统计算错误',
+                status: 'pending',
+                submitTime: '2024-03-20 10:15:00',
+                handler: null,
+                handleTime: null,
+                handleResult: ''
+            }
+        ]
+
+        function updateDisplay() {
+            const materials = localStorage.getItem('evaluationMaterials')
+            const scores = localStorage.getItem('evaluationScores')
+            const appeals = localStorage.getItem('scoreAppeals')
+
+            document.getElementById('materialsCount').textContent = materials ? JSON.parse(materials).length : 0
+            document.getElementById('scoresCount').textContent = scores ? JSON.parse(scores).length : 0
+            document.getElementById('appealsCount').textContent = appeals ? JSON.parse(appeals).length : 0
+        }
+
+        function loadDemoData() {
+            localStorage.setItem('evaluationMaterials', JSON.stringify(demoMaterials))
+            localStorage.setItem('evaluationScores', JSON.stringify(demoScores))
+            localStorage.setItem('scoreAppeals', JSON.stringify(demoAppeals))
+            updateDisplay()
+            showStatus('✅ 演示数据已加载！', 'success')
+        }
+
+        function clearAllData() {
+            localStorage.clear()
+            updateDisplay()
+            showStatus('🗑️ 所有数据已清除！', 'success')
+        }
+
+        function checkData() {
+            const materials = localStorage.getItem('evaluationMaterials')
+            const scores = localStorage.getItem('evaluationScores')
+            const appeals = localStorage.getItem('scoreAppeals')
+
+            const details = {
+                materials: materials ? JSON.parse(materials) : [],
+                scores: scores ? JSON.parse(scores) : [],
+                appeals: appeals ? JSON.parse(appeals) : []
+            }
+
+            document.getElementById('dataDetails').textContent = JSON.stringify(details, null, 2)
+        }
+
+        function goToApp() {
+            window.location.href = '/role-select'
+        }
+
+        function showStatus(message, type) {
+            const status = document.getElementById('status')
+            status.textContent = message
+            status.className = 'status ' + type
+            status.style.display = 'block'
+
+            setTimeout(() => {
+                status.style.display = 'none'
+            }, 3000)
+        }
+
+        // 初始化显示
+        updateDisplay()
+    </script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "Vue Dev Server",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "port": 3000,
+      "description": "Vite dev server for Vue 3 application"
+    },
+    {
+      "name": "Python HTTP Server",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8080"],
+      "port": 8080,
+      "description": "Python built-in HTTP server on port 8080"
+    },
+    {
+      "name": "npx serve",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "-l", "8080"],
+      "port": 8080,
+      "description": "Node.js static server via npx serve on port 8080"
+    }
+  ]
+}

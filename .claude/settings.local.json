@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(open \"/Users/xixi/Desktop/claude/V2.0 teacher/index.html\")",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(npm run dev)",
+      "Bash(open http://localhost:3001)",
+      "Bash(open \"/Users/xixi/Desktop/claude/V2.0 teacher/public/init.html\")",
+      "Bash(open http://localhost:3002/role-select)",
+      "Bash(open http://localhost:3002/reset.html)",
+      "Bash(open http://localhost:3002/admin/material-approval)",
+      "Bash(\"/Users/xixi/Desktop/claude/V2.0 teacher/REDEVELOPMENT_SUMMARY.md\":*)",
+      "Bash(curl -s http://localhost:3002/admin/material-approval)",
+      "Bash(open http://localhost:3002/test-data.html)",
+      "Bash(open http://localhost:3002/teacher/my-score)",
+      "Bash(open http://localhost:3000/teacher/my-score)",
+      "Bash(lsof -i :3000)",
+      "Bash(kill -9 37212 37073)",
+      "Bash(lsof -i :3000 :3001 :3002 :3003)",
+      "Bash(npx eslint src/views/teacher/material/MaterialUpload.vue --no-eslintrc)",
+      "Bash(pkill -f \"vite\")",
+      "Bash(kill -9 94437)",
+      "Bash(node -c src/stores/materials.js)",
+      "Bash(node -c src/stores/scores.js)",
+      "Bash(node -c src/stores/role.js)",
+      "Bash(pkill -f node)"
+    ]
+  }
+}
