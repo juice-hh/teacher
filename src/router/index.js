@@ -81,7 +81,7 @@ const routes = [
         path: 'material-approval',
         name: 'MaterialApproval',
         component: () => import('@/views/admin/material/MaterialApproval.vue'),
-        meta: { title: '评价材料审批' }
+        meta: { title: '评价填报审批' }
       }
     ]
   },

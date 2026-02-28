@@ -31,9 +31,9 @@
         <el-sub-menu index="material">
           <template #title>
             <el-icon><Document /></el-icon>
-            <span>评价材料管理</span>
+            <span>评价填报管理</span>
           </template>
-          <el-menu-item index="/admin/material-approval">评价材料审批</el-menu-item>
+          <el-menu-item index="/admin/material-approval">评价填报审批</el-menu-item>
         </el-sub-menu>
 
         <el-sub-menu index="statistics">

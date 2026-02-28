@@ -25,36 +25,53 @@
 
       <!-- 绑定的指标列表 -->
       <div class="indicators-section">
-        <h3>所需填报指标清单</h3>
-        <el-table :data="indicators" border style="width: 100%; margin-top: 16px;">
-          <el-table-column prop="primaryName" label="一级指标" width="150" show-overflow-tooltip />
-          <el-table-column prop="name" label="明细指标" min-width="150" show-overflow-tooltip />
-          <el-table-column prop="score" label="满分" width="80">
-            <template #default="{ row }">
-              <el-tag type="warning" size="small">{{ row.score }}分</el-tag>
-            </template>
-          </el-table-column>
-          <el-table-column prop="scoringRule" label="评分规则" min-width="200" show-overflow-tooltip />
-          <el-table-column prop="materialRequirement" label="材料要求" min-width="200" show-overflow-tooltip />
-          
-          <!-- 填报操作列 -->
-          <el-table-column label="填报操作" width="160" fixed="right" align="center">
-            <template #default="{ row }">
-              <div class="fill-actions">
-                <div v-if="row.selfScore !== null">
-                  <el-tag type="success" size="small" class="mb-2 w-full block">已填报 ({{ row.selfScore }}分)</el-tag>
-                  <div class="text-xs text-gray-500 mb-2">
-                    {{ row.files && row.files.length ? `已传 ${row.files.length} 个附件` : '无附件' }}
-                  </div>
-                  <el-button type="primary" size="small" plain @click="goFill(row)">修改填报</el-button>
-                </div>
-                <div v-else>
-                  <el-button type="primary" size="small" @click="goFill(row)">去填报</el-button>
-                </div>
+        <h3 style="margin-bottom: 16px;">所需填报指标清单</h3>
+        <el-collapse v-model="activeNames" class="indicator-collapse">
+          <el-collapse-item
+            v-for="primary in groupedIndicators"
+            :key="primary.name"
+            :name="primary.name"
+          >
+            <template #title>
+              <div class="primary-title">
+                <span class="primary-name">{{ primary.name }}</span>
+                <el-tag type="primary" size="large">{{ primary.totalScore }}分</el-tag>
+                <el-tag type="info" size="small">共 {{ primary.items.length }} 项明细指标</el-tag>
               </div>
             </template>
-          </el-table-column>
-        </el-table>
+            
+            <div class="secondary-list">
+              <el-table :data="primary.items" style="width: 100%">
+                <el-table-column prop="name" label="明细指标" min-width="150" show-overflow-tooltip />
+                <el-table-column prop="score" label="满分" width="80">
+                  <template #default="{ row }">
+                    <el-tag type="warning" size="small">{{ row.score }}分</el-tag>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="scoringRule" label="评分规则" min-width="200" show-overflow-tooltip />
+                <el-table-column prop="materialRequirement" label="材料要求" min-width="200" show-overflow-tooltip />
+                
+                <!-- 填报操作列 -->
+                <el-table-column label="填报操作" width="160" fixed="right" align="center">
+                  <template #default="{ row }">
+                    <div class="fill-actions">
+                      <div v-if="row.selfScore !== null">
+                        <el-tag type="success" size="small" class="mb-2 w-full block">已填报 ({{ row.selfScore }}分)</el-tag>
+                        <div class="text-xs text-gray-500 mb-2">
+                          {{ row.files && row.files.length ? `已传 ${row.files.length} 个附件` : '无附件' }}
+                        </div>
+                        <el-button type="primary" size="small" plain @click="goFill(row)">修改填报</el-button>
+                      </div>
+                      <div v-else>
+                        <el-button type="primary" size="small" @click="goFill(row)">去填报</el-button>
+                      </div>
+                    </div>
+                  </template>
+                </el-table-column>
+              </el-table>
+            </div>
+          </el-collapse-item>
+        </el-collapse>
       </div>
 
     </el-card>
@@ -62,7 +79,7 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue'
+import { onMounted, computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ArrowLeft, Check } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
@@ -74,6 +91,24 @@ const router = useRouter()
 const fillStore = useFillStore()
 
 const { taskInfo, indicators } = storeToRefs(fillStore)
+
+const groupedIndicators = computed(() => {
+  const groups = {}
+  indicators.value.forEach(item => {
+    if (!groups[item.primaryName]) {
+      groups[item.primaryName] = {
+        name: item.primaryName,
+        items: [],
+        totalScore: 0
+      }
+    }
+    groups[item.primaryName].items.push(item)
+    groups[item.primaryName].totalScore += item.score
+  })
+  return Object.values(groups)
+})
+
+const activeNames = ref([])
 
 const goFill = (row) => {
   const taskId = route.params.id || 'default'
@@ -98,6 +133,8 @@ const handleSubmit = () => {
 onMounted(() => {
   const taskId = route.params.id || 'default'
   fillStore.init(taskId)
+  // 默认展开所有一级指标
+  activeNames.value = groupedIndicators.value.map(g => g.name)
 })
 </script>
 
@@ -167,5 +204,48 @@ onMounted(() => {
 
 .text-gray-500 {
   color: #6b7280;
+}
+
+.indicator-collapse {
+  border: none;
+}
+
+:deep(.el-collapse-item__header) {
+  background: #fafafa;
+  border-radius: 6px;
+  padding: 0 16px;
+  margin-bottom: 8px;
+  height: 60px;
+}
+
+:deep(.el-collapse-item__wrap) {
+  border: none;
+  background: transparent;
+}
+
+:deep(.el-collapse-item__content) {
+  padding-bottom: 16px;
+}
+
+.primary-title {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+}
+
+.primary-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1f1f1f;
+}
+
+.secondary-list {
+  padding: 0 16px;
+  background: #fff;
+}
+
+:deep(.el-table) {
+  border-radius: 6px;
 }
 </style>
